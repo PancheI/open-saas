@@ -1,0 +1,63 @@
+---
+title: AgentaOS
+banner:
+  content: |
+    Have an Open SaaS app in production? <a href="https://e44cy1h4s0q.typeform.com/to/EPJCwsMi">We'll send you some swag! 👕</a>
+---
+
+First, make sure you've defined your payment processor in `src/payment/paymentProcessor.ts` and `src/payment/paymentProcessorClient.ts`, as described in the [important first steps](/guides/payment-integrations/).
+
+[AgentaOS](https://agentaos.ai) is a Merchant of Record: it sells your product in its own name, charges the VAT and sales tax, issues the invoice and pays you out. It also pays out to founders in many countries Stripe doesn't support.
+
+### Test mode and API key
+
+Create an account at [app.agentaos.ai](https://app.agentaos.ai) and switch the dashboard to **test mode**. Open **Developers → API keys** and click **Generate Test Key**. Add it to your `.env.server` file:
+
+```ini title=".env.server"
+AGENTAOS_API_KEY=sk_test_...
+```
+
+A key that starts with `sk_test_` works in test mode, and one that starts with `sk_live_` works in live mode. When you're ready to [deploy your app](/guides/deploying/), generate a live key.
+
+### Create your products
+
+In the dashboard, create three products:
+- a subscription product for the Hobby plan, billed monthly,
+- a subscription product for the Pro plan, billed monthly,
+- a one-time product for 10 credits.
+
+Copy each product's link ID (the **Copy link ID** action on the product page) into your `.env.server` file:
+
+```ini title=".env.server"
+PAYMENTS_HOBBY_SUBSCRIPTION_PLAN_ID=...
+PAYMENTS_PRO_SUBSCRIPTION_PLAN_ID=...
+PAYMENTS_CREDITS_10_PLAN_ID=...
+```
+
+### Webhooks
+
+AgentaOS tells your app about payments with signed webhooks. For local development, expose your server with a tunnel such as [ngrok](https://ngrok.com/) (`ngrok http 3001`), then:
+
+1. In the dashboard, open **Settings → Developers → Webhooks**.
+2. Set the URL to `https://<your-tunnel>/payments-webhook`.
+3. Click **Reveal signing secret** and add it to your `.env.server` file:
+
+```ini title=".env.server"
+AGENTAOS_WEBHOOK_SECRET=whsec_...
+```
+
+The app handles these events:
+- `checkout.session.completed`: grants the plan or the credits to the user who bought them. The user's id is sent with the checkout and comes back on this event.
+- `subscription.created`, `subscription.renewed`, `subscription.updated`, `subscription.payment_failed` and `subscription.canceled`: keep the subscription status in sync.
+
+:::note
+Subscription events identify the buyer by email, so the checkout is prefilled with the user's email and that email is stored as their payment processor user id. If a buyer changes the email at checkout, the purchase still unlocks their plan, but later subscription changes for that email are logged instead of applied.
+:::
+
+### Customer portal
+
+AgentaOS has no hosted customer portal, so the account page shows no "Manage subscription" link. You can cancel or change a plan from your server with `agentaosApi.subscriptions` (see the [SDK docs](https://docs.agentaos.ai/sdk/pay-overview)).
+
+### Test a payment
+
+Run your app, go to the pricing page and buy a plan. Pay with the test card `4242 4242 4242 4242`, any future date and any CVC. Your user's subscription status should change to `active` in the database.

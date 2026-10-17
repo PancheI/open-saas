@@ -100,6 +100,10 @@ export default defineConfig({
                   label: "Paddle",
                   link: "/guides/payment-integrations/paddle/",
                 },
+                {
+                  label: "AgentaOS",
+                  link: "/guides/payment-integrations/agentaos/",
+                },
               ],
             },
             { label: "Deploying", link: "/guides/deploying/" },

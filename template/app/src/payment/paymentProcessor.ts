@@ -25,7 +25,12 @@ export type CheckoutSession =
   | { kind: "redirect"; id: string; url: string }
   | { kind: "inPage"; id: string };
 
-export type PaymentProcessorId = "stripe" | "lemonsqueezy" | "polar" | "paddle";
+export type PaymentProcessorId =
+  | "stripe"
+  | "lemonsqueezy"
+  | "polar"
+  | "paddle"
+  | "agentaos";
 
 export interface PaymentProcessor {
   id: PaymentProcessorId;
@@ -50,3 +55,4 @@ export const paymentProcessor: PaymentProcessor = stripePaymentProcessor;
 // export const paymentProcessor: PaymentProcessor = lemonSqueezyPaymentProcessor;
 // export const paymentProcessor: PaymentProcessor = polarPaymentProcessor;
 // export const paymentProcessor: PaymentProcessor = paddlePaymentProcessor;
+// export const paymentProcessor: PaymentProcessor = agentaosPaymentProcessor;
